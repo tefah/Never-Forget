@@ -16,6 +16,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".AddTaskActivity"></activity>
+        <provider
+            android:authorities="com.tefah.neverforget"
+            android:name=".data.TaskContentProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>

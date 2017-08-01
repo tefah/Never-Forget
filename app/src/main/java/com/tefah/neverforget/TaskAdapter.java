@@ -1,6 +1,7 @@
 package com.tefah.neverforget;
 
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -12,7 +13,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
     @Override
     public TaskViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return null;
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.tasks_list_item, null);
+        TaskViewHolder viewHolder = new TaskViewHolder(view);
+        return viewHolder;
     }
 
     @Override
