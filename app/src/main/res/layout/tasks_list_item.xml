@@ -8,11 +8,13 @@
     android:layout_marginBottom="@dimen/xxmargin">
 
     <ImageView
+        android:id="@+id/imageNote"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:src="@color/colorPrimaryDark"
         android:layout_gravity="center_vertical"/>
     <TextView
+        android:id="@+id/textNote"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"

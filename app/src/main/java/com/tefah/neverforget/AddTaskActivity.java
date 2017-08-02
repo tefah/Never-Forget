@@ -29,20 +29,20 @@ public class AddTaskActivity extends AppCompatActivity {
         addTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                add();
+                done();
             }
         });
     }
-    private void add(){
+    private void done(){
         String text = textNote.getText().toString();
         ContentValues values = new ContentValues();
         values.put(TaskContract.TaskEntry.COLUMN_TEXT, text);
-        values.put(TaskContract.TaskEntry.COLUMN_DATE, 123456789);
+        values.put(TaskContract.TaskEntry.COLUMN_DATE, 1);
         values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
 
         Uri uri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, values);
 
         Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show();
-
+        finish();
     }
 }

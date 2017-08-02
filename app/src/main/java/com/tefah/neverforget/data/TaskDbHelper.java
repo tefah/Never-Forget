@@ -36,7 +36,7 @@ public class TaskDbHelper  extends SQLiteOpenHelper {
                 TaskEntry.COLUMN_TEXT + " TEXT , " +
                 TaskEntry.COLUMN_IMAGE    + " TEXT, " +
                 TaskEntry.COLUMN_VOICE +" TEXT, " +
-                TaskEntry.COLUMN_ALARM + "INTEGER NOT NULL " +
+                TaskEntry.COLUMN_ALARM + " INTEGER NOT NULL, " +
                 TaskEntry.COLUMN_DATE + " INTEGER NOT NULL " +
                 " );";
 
