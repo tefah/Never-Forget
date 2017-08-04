@@ -11,4 +11,5 @@
     intent putExtra key to task
     <string name="task">task</string>
     <string name="no_audio_recorded">No Audio recorded for this task</string>
+    <string name="update_task">update task</string>
 </resources>

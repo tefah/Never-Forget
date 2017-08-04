@@ -7,14 +7,12 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,13 +27,8 @@ import com.tefah.neverforget.data.TaskContract;
 
 import org.parceler.Parcels;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -48,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static  int TASK_LOADER_ID = 0;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
 
+    private boolean toUpdateTask = false;
     private static String audioPath = null;
     private TaskAdapter taskAdapter;
     private MediaRecorder recorder = null;
@@ -153,6 +147,8 @@ public void photoNote(){
             intent.setAction(getString(R.string.take_picture));
         else if (hasVoice)
             intent.putExtra(getString(R.string.task), Parcels.wrap(task));
+        if (toUpdateTask)
+            intent.setAction(getString(R.string.update_task));
         startActivity(intent);
     }
 
@@ -231,6 +227,7 @@ public void photoNote(){
             Utilities.startPlaying(audioPath, this);
         }else {
             task = tasks.get(position);
+            toUpdateTask = true;
             addTask(true, false);
         }
 

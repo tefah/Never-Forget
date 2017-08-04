@@ -43,6 +43,7 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     public static final String FILE_PROVIDER_AUTHORITY = "com.tefah.fileprovider";
 
 
+    private boolean updateTask = false;
     private String audioPath;
     private String imagePath;
     private long date;
@@ -65,13 +66,18 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
 
         Intent intent = getIntent();
         task = new Task();
-        if (intent.getAction()!=null)
+        if (intent.getAction()!=null) {
             if (intent.getAction().equals(getString(R.string.take_picture)))
                 photoNote();
+            else if (intent.getAction().equals(getString(R.string.update_task)))
+                updateTask = true;
+        }
         if (intent.hasExtra(getString(R.string.task))) {
             task = Parcels.unwrap(intent.getParcelableExtra(getString(R.string.task)));
             audioPath = task.getAudioFilePath();
             imagePath = task.getImageFilePath();
+            imageNote.setImageBitmap(Utilities.resamplePic(this, task.getImageFilePath()));
+            textNote.setText(task.getText());
         }
     }
 
@@ -168,15 +174,25 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
 
     @OnClick(R.id.done)
     public void done(){
-        if (mResultsBitmap!= null)
-            imagePath = Utilities.saveImage(this, mResultsBitmap);
         String text = textNote.getText().toString();
-        if (text.isEmpty())
+        if (text.isEmpty()) {
             text = new SimpleDateFormat("dd MM yyyy",
                     Locale.getDefault()).format(new Date());
+        }
+        if (updateTask)
+            Utilities.deleteImageFile(this, imagePath);
+        if (mResultsBitmap!= null)
+            imagePath = Utilities.saveImage(this, mResultsBitmap);
         task = new Task(Utilities.timeStamp(), false, text);
         task.setAudioFilePath(audioPath);
         task.setImageFilePath(imagePath);
+        if (updateTask)
+            updateTask();
+        else addNewTask();
+
+        finish();
+    }
+    public void addNewTask(){
         ContentValues values = new ContentValues();
         values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
         values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
@@ -185,10 +201,29 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
 
         Uri uri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, values);
+        task.setId(Integer.parseInt(uri.getPathSegments().get(1)));
 
         Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show();
 
-        finish();
+    }
+    public void updateTask(){
+        try {
+            Log.i("UPDATE TASK", "Entered");
+
+            ContentValues values = new ContentValues();
+            values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
+            values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
+            values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
+            values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
+            values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
+
+            Uri taskUri = Uri.withAppendedPath(TaskContract.TaskEntry.CONTENT_URI, task.getId() + "");
+            int tasksUpdated = getContentResolver().update(taskUri, values, null, null);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+//        Toast.makeText(this, tasksUpdated, Toast.LENGTH_SHORT).show();
     }
 
 
