@@ -15,6 +15,13 @@ public class TaskContract {
     public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
     public static final String PATH_TASKS = "tasks";
 
+    public static final int ID_INDEX = 0;
+    public static final int TEXT_INDEX  = ID_INDEX + 1;
+    public static final int IMAGE_INDEX = TEXT_INDEX + 1;
+    public static final int VOICE_INDEX = IMAGE_INDEX + 1;
+    public static final int ALARM_INDEX = VOICE_INDEX + 1;
+    public static final int DATE_INDEX  = ALARM_INDEX + 1;
+
 
     /* TaskEntry is an inner class that defines the contents of the task table */
     public static final class TaskEntry implements BaseColumns {

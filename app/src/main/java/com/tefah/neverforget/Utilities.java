@@ -26,8 +26,9 @@ import java.util.Locale;
 
 public class Utilities {
 
-    public static void startPlaying(MediaPlayer player, String audioFileName, MediaPlayer.OnSeekCompleteListener listener) {
+    public static void startPlaying( String audioFileName, MediaPlayer.OnSeekCompleteListener listener) {
         try {
+            MediaPlayer player = new MediaPlayer();
             player.setDataSource(audioFileName);
             player.prepare();
             player.start();
@@ -45,7 +46,7 @@ public class Utilities {
     public static String startRecording(MediaRecorder recorder, Context context) {
         String savedAudioPath = null;
 
-        File storageDir = mainStroageDir();
+        File storageDir = mainStorageDir();
         boolean success = true;
         storageDir = new File(storageDir.getPath() + "/audio");
         if (!storageDir.exists()) {
@@ -81,7 +82,7 @@ public class Utilities {
         recorder = null;
     }
 
-    public static long getUnixTime(){
+    public static long timeStamp(){
         Calendar c = Calendar.getInstance();
         return c.getTime().getTime();
     }
@@ -191,7 +192,7 @@ public class Utilities {
         String timeStamp = new SimpleDateFormat("ddMMyyyy_HHmmss",
                 Locale.getDefault()).format(new Date());
         String imageFileName = "JPEG_" + timeStamp + ".jpg";
-        File storageDir = mainStroageDir();
+        File storageDir = mainStorageDir();
         boolean success = true;
         storageDir = new File(storageDir.getPath() + "/pics");
         if (!storageDir.exists()) {
@@ -220,7 +221,7 @@ public class Utilities {
         return savedImagePath;
     }
 
-    private static File mainStroageDir(){
+    private static File mainStorageDir(){
         File storageDir = new File(
                 Environment.getExternalStorageDirectory()
                         + "/NeverForget");

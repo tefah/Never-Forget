@@ -2,8 +2,13 @@
     <string name="app_name">Never Forget</string>
 
 
-
     <string name="permission_denied">Permission Denied</string>
     <string name="saved_message">Image Saved at %1$s</string>
     <string name="error">Error finding image</string>
+
+    <!--intent action to task activity-->
+    <string name="take_picture" translatable="false">take picture</string>
+    intent putExtra key to task
+    <string name="task">task</string>
+    <string name="no_audio_recorded">No Audio recorded for this task</string>
 </resources>

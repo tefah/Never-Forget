@@ -23,8 +23,13 @@ import android.widget.Toast;
 
 import com.tefah.neverforget.data.TaskContract;
 
+import org.parceler.Parcels;
+
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -38,13 +43,15 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     public static final String FILE_PROVIDER_AUTHORITY = "com.tefah.fileprovider";
 
 
-    private String audioFileName;
+    private String audioPath;
+    private String imagePath;
     private long date;
     private Bitmap mResultsBitmap;
     private String mTempPhotoPath;
+    public Task task;
 
-    @BindView(R.id.addTask)
-    Button addTask;
+    @BindView(R.id.done)
+    Button done;
     @BindView(R.id.writtenNote)
     EditText textNote;
     @BindView(R.id.imageNote)
@@ -57,20 +64,15 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         ButterKnife.bind(this);
 
         Intent intent = getIntent();
-        if (intent.hasExtra("fileName")) {
-            audioFileName = intent.getStringExtra("fileName");
+        task = new Task();
+        if (intent.getAction()!=null)
+            if (intent.getAction().equals(getString(R.string.take_picture)))
+                photoNote();
+        if (intent.hasExtra(getString(R.string.task))) {
+            task = Parcels.unwrap(intent.getParcelableExtra(getString(R.string.task)));
+            audioPath = task.getAudioFilePath();
+            imagePath = task.getImageFilePath();
         }
-        date = intent.getLongExtra("date", 0);
-        if (intent.getBooleanExtra("takePicture", false))
-            photoNote();
-
-
-        addTask.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                done();
-            }
-        });
     }
 
     /**
@@ -164,17 +166,28 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         }
     }
 
-    private void done(){
+    @OnClick(R.id.done)
+    public void done(){
+        if (mResultsBitmap!= null)
+            imagePath = Utilities.saveImage(this, mResultsBitmap);
         String text = textNote.getText().toString();
+        if (text.isEmpty())
+            text = new SimpleDateFormat("dd MM yyyy",
+                    Locale.getDefault()).format(new Date());
+        task = new Task(Utilities.timeStamp(), false, text);
+        task.setAudioFilePath(audioPath);
+        task.setImageFilePath(imagePath);
         ContentValues values = new ContentValues();
-        values.put(TaskContract.TaskEntry.COLUMN_TEXT, text);
-        values.put(TaskContract.TaskEntry.COLUMN_DATE, date);
+        values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
+        values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
         values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
 
         Uri uri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, values);
 
-//        Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show();
-        Utilities.saveImage(this, mResultsBitmap);
+        Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show();
+
         finish();
     }
 

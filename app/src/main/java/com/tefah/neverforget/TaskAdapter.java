@@ -2,10 +2,13 @@ package com.tefah.neverforget;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.tefah.neverforget.data.TaskContract;
@@ -18,9 +21,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
     private Cursor cursor;
     private Context context;
+    OnTaskClickListener clickListener;
 
-    public TaskAdapter(Context context){
+    public interface OnTaskClickListener {
+        public void onClick(View view, int position);
+    }
+
+    public TaskAdapter(Context context, OnTaskClickListener clickListener){
         this.context = context;
+        this.clickListener = clickListener;
     }
 
     @Override
@@ -33,15 +42,19 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public void onBindViewHolder(TaskViewHolder holder, int position) {
 
-        int idIndex = cursor.getColumnIndex(TaskContract.TaskEntry._ID);
-        int textInd = cursor.getColumnIndex(TaskContract.TaskEntry.COLUMN_TEXT);
-
         cursor.moveToPosition(position);
-        String text = cursor.getString(textInd);
-        int id = cursor.getInt(idIndex);
+        String text = cursor.getString(TaskContract.TEXT_INDEX);
+        int id = cursor.getInt(TaskContract.ID_INDEX);
+        String imagePath = cursor.getString(TaskContract.IMAGE_INDEX);
+        String audioPath = cursor.getString(TaskContract.VOICE_INDEX);
+        Bitmap bitmap = Utilities.resamplePic(context, imagePath);
 
         holder.textNote.setText(text);
         holder.itemView.setTag(id);
+        if (bitmap == null)
+            holder.imageNote.setImageResource(R.mipmap.note);
+        else
+            holder.imageNote.setImageBitmap(bitmap);
 
     }
 
@@ -71,12 +84,23 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return temp;
     }
 
-    public class TaskViewHolder extends RecyclerView.ViewHolder {
+    public class TaskViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         TextView textNote;
+        ImageView imageNote;
+        ImageButton play;
         public TaskViewHolder(View itemView) {
             super(itemView);
+            itemView.setOnClickListener(this);
             textNote = (TextView) itemView.findViewById(R.id.textNote);
+            imageNote = (ImageView) itemView.findViewById(R.id.imageNote);
+            play = (ImageButton) itemView.findViewById(R.id.playVoiceNote);
+            play.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            clickListener.onClick(view, getAdapterPosition());
         }
     }
 }

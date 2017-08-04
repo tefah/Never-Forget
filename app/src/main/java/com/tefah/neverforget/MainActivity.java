@@ -27,26 +27,32 @@ import android.widget.Toast;
 
 import com.tefah.neverforget.data.TaskContract;
 
+import org.parceler.Parcels;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
+        TaskAdapter.OnTaskClickListener, MediaPlayer.OnSeekCompleteListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static  int TASK_LOADER_ID = 0;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
-    private static String audioFileName = null;
+
+    private static String audioPath = null;
     private TaskAdapter taskAdapter;
     private MediaRecorder recorder = null;
-    private MediaPlayer player = null;
-
+    private List<Task> tasks;
+    public Task task;
 
     @BindView(R.id.tasksList)
     RecyclerView tasksList;
@@ -76,7 +82,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        taskAdapter = new TaskAdapter(this);
+        tasks = new ArrayList<>();
+        taskAdapter = new TaskAdapter(this, this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
         tasksList.setLayoutManager(layoutManager);
         tasksList.setAdapter(taskAdapter);
@@ -98,17 +105,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         }).attachToRecyclerView(tasksList);
 
-        writeNote.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN){
-                }
-                else if (motionEvent.getAction() == MotionEvent.ACTION_UP){
-                    addTask();
-                }
-                return true;
-            }
-        });
         voiceNote.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -116,15 +112,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 switch (action){
                     case MotionEvent.ACTION_DOWN:
                         recorder = new MediaRecorder();
-                        audioFileName = Utilities.startRecording(recorder, MainActivity.this);
+                        audioPath = Utilities.startRecording(recorder, MainActivity.this);
                         break;
                     case MotionEvent.ACTION_UP:
                         Utilities.stopRecording(recorder);
-                        Toast.makeText(MainActivity.this, audioFileName, Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(MainActivity.this, AddTaskActivity.class);
-                        intent.putExtra("fileName", audioFileName);
-                        intent.putExtra("date", Utilities.getUnixTime());
-                        startActivity(intent);
+                        task = new Task();
+                        task.setAudioFilePath(audioPath);
+                        addTask(true, false);
                         break;
                     default:
                 }
@@ -133,32 +127,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
-
     }
 
 @OnClick(R.id.photoNote)
 public void photoNote(){
-    Intent intent = new Intent(this, AddTaskActivity.class);
-    intent.putExtra("takePicture", true);
-    intent.putExtra("date", Utilities.getUnixTime());
-    startActivity(intent);
+    addTask(false, true);
 }
 
     @Override
     protected void onResume() {
         super.onResume();
-        getLoaderManager().initLoader(TASK_LOADER_ID, null, this);
+        getLoaderManager().restartLoader(TASK_LOADER_ID, null, this);
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        TASK_LOADER_ID +=1;
+    @OnClick(R.id.writeNote)
+    public void writeNote(){
+        addTask(false, false);
     }
 
-    public void addTask(){
+
+
+    public void addTask(boolean hasVoice, boolean takePicture){
         Intent intent = new Intent(this,AddTaskActivity.class);
-        intent.putExtra("date", Utilities.getUnixTime());
+        if (takePicture)
+            intent.setAction(getString(R.string.take_picture));
+        else if (hasVoice)
+            intent.putExtra(getString(R.string.task), Parcels.wrap(task));
         startActivity(intent);
     }
 
@@ -198,8 +192,8 @@ public void photoNote(){
 
             // deliverResult sends the result of the load, a Cursor, to the registered listener
             public void deliverResult(Cursor data) {
-                taskData = data;
                 super.deliverResult(data);
+                taskData = data;
             }
         };
     }
@@ -207,6 +201,17 @@ public void photoNote(){
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         taskAdapter.swapCursor(cursor);
+        for (int i =0; i< cursor.getCount(); i++){
+            if (cursor.moveToNext()){
+                int id = cursor.getInt(TaskContract.ID_INDEX);
+                String text         = cursor.getString(TaskContract.TEXT_INDEX);
+                String imagePath    = cursor.getString(TaskContract.IMAGE_INDEX);
+                String voicePath    = cursor.getString(TaskContract.VOICE_INDEX);
+                boolean alarm       = cursor.getInt(TaskContract.ALARM_INDEX) == 1 ? true : false;
+                long date           = cursor.getLong(TaskContract.DATE_INDEX);
+                tasks.add(new Task(id, date, alarm, text, voicePath, imagePath));
+            }
+        }
     }
 
     @Override
@@ -214,20 +219,25 @@ public void photoNote(){
         taskAdapter.swapCursor(null);
     }
 
-    private void startPlaying() {
-        player = new MediaPlayer();
-        try {
-            player.setDataSource(audioFileName);
-            player.prepare();
-            player.start();
-        } catch (IOException e) {
-            Log.e(TAG, "prepare() failed");
+    @Override
+    public void onClick(View view, int position) {
+        Log.i("MAIN ACTIVITY", view.getId() + " ");
+        if (view.getId() == R.id.playVoiceNote) {
+            String audioPath = tasks.get(position).getAudioFilePath();
+            if (audioPath == null){
+                Toast.makeText(this, getString(R.string.no_audio_recorded), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Utilities.startPlaying(audioPath, this);
+        }else {
+            task = tasks.get(position);
+            addTask(true, false);
         }
+
     }
 
-    private void stopPlaying() {
-        player.release();
-        player = null;
+    @Override
+    public void onSeekComplete(MediaPlayer mediaPlayer) {
+        Utilities.stopPlaying(mediaPlayer);
     }
-
 }

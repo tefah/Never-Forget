@@ -23,5 +23,11 @@
         android:layout_gravity="center"
         android:maxLines="2"
         android:textSize="20sp"/>
+    <ImageButton
+        android:id="@+id/playVoiceNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_media_play"
+        android:layout_gravity="center_vertical"/>
 
 </LinearLayout>
