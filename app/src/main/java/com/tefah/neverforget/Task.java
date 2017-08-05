@@ -7,7 +7,7 @@ import org.parceler.Parcel;
  */
 @Parcel
 public class Task {
-    int id;
+    String uri;
     String text, audioFilePath, imageFilePath;
     long timeStamp;
     boolean alarm;
@@ -21,29 +21,29 @@ public class Task {
         this.text = text;
     }
 
-    public Task(int id, long timeStamp, boolean alarm, String text){
-        this.id = id;
+    public Task(String uri, long timeStamp, boolean alarm, String text){
+        this.uri = uri;
         this.timeStamp = timeStamp;
         this.alarm = alarm;
         this.text = text;
     }
 
-    public Task(int id, long timeStamp, boolean alarm, String text, String audioFilePath) {
-        this(id, timeStamp, alarm, text);
+    public Task(String uri, long timeStamp, boolean alarm, String text, String audioFilePath) {
+        this(uri, timeStamp, alarm, text);
         this.audioFilePath = audioFilePath;
     }
 
-    public Task(int id, long timeStamp, boolean alarm, String text, String audioFilePath, String imageFilePath) {
-        this(id, timeStamp, alarm, text, audioFilePath);
+    public Task(String uri, long timeStamp, boolean alarm, String text, String audioFilePath, String imageFilePath) {
+        this(uri, timeStamp, alarm, text, audioFilePath);
         this.imageFilePath = imageFilePath;
     }
 
-    public int getId() {
-        return id;
+    public String getUri() {
+        return uri;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
     public String getText() {

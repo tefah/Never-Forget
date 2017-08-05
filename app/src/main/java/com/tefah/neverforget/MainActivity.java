@@ -3,6 +3,7 @@ package com.tefah.neverforget;
 import android.Manifest;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
+import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
@@ -76,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        tasks = new ArrayList<>();
         taskAdapter = new TaskAdapter(this, this);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
         tasksList.setLayoutManager(layoutManager);
@@ -131,7 +131,7 @@ public void photoNote(){
     @Override
     protected void onResume() {
         super.onResume();
-        getLoaderManager().restartLoader(TASK_LOADER_ID, null, this);
+        getLoaderManager().initLoader(TASK_LOADER_ID, null, this);
     }
 
     @OnClick(R.id.writeNote)
@@ -152,60 +152,25 @@ public void photoNote(){
         startActivity(intent);
     }
 
-    private Cursor query(){
-        return getContentResolver().query(TaskContract.TaskEntry.CONTENT_URI,
-                null, null, null, TaskContract.TaskEntry.COLUMN_DATE);
-    }
-
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new AsyncTaskLoader<Cursor>(this) {
-            Cursor taskData = null;
-
-            // onStartLoading() is called when a loader first starts loading data
-            @Override
-            protected void onStartLoading() {
-                if (taskData != null) {
-                    // Delivers any previously loaded data immediately
-                    deliverResult(taskData);
-                } else {
-                    // Force a new load
-                    forceLoad();
-                }
-            }
-
-            @Override
-            public Cursor loadInBackground() {
-                try {
-                    return query();
-
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to asynchronously load data.");
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            // deliverResult sends the result of the load, a Cursor, to the registered listener
-            public void deliverResult(Cursor data) {
-                super.deliverResult(data);
-                taskData = data;
-            }
-        };
+        return new CursorLoader(this, TaskContract.TaskEntry.CONTENT_URI,
+                null, null, null, TaskContract.TaskEntry.COLUMN_DATE);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         taskAdapter.swapCursor(cursor);
+        tasks =  new ArrayList<>();
         for (int i =0; i< cursor.getCount(); i++){
             if (cursor.moveToNext()){
-                int id = cursor.getInt(TaskContract.ID_INDEX);
                 String text         = cursor.getString(TaskContract.TEXT_INDEX);
                 String imagePath    = cursor.getString(TaskContract.IMAGE_INDEX);
                 String voicePath    = cursor.getString(TaskContract.VOICE_INDEX);
                 boolean alarm       = cursor.getInt(TaskContract.ALARM_INDEX) == 1 ? true : false;
                 long date           = cursor.getLong(TaskContract.DATE_INDEX);
-                tasks.add(new Task(id, date, alarm, text, voicePath, imagePath));
+                String uri          = cursor.getString(TaskContract.URI_INDEX);
+                tasks.add(new Task(uri, date, alarm, text, voicePath, imagePath));
             }
         }
     }
@@ -217,7 +182,6 @@ public void photoNote(){
 
     @Override
     public void onClick(View view, int position) {
-        Log.i("MAIN ACTIVITY", view.getId() + " ");
         if (view.getId() == R.id.playVoiceNote) {
             String audioPath = tasks.get(position).getAudioFilePath();
             if (audioPath == null){

@@ -158,7 +158,7 @@ public class TaskContentProvider extends ContentProvider {
         switch (match) {
             case TASK_WITH_ID:
                 String id = uri.getPathSegments().get(1);
-                tasksUpdated = db.update(TABLE_NAME, values, "_id=?", new String[] {id});
+                tasksUpdated = db.update(TABLE_NAME, values, "_id=?", new String[]{id});
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

@@ -21,6 +21,7 @@ public class TaskContract {
     public static final int VOICE_INDEX = IMAGE_INDEX + 1;
     public static final int ALARM_INDEX = VOICE_INDEX + 1;
     public static final int DATE_INDEX  = ALARM_INDEX + 1;
+    public static final int URI_INDEX   = DATE_INDEX + 1;
 
 
     /* TaskEntry is an inner class that defines the contents of the task table */
@@ -41,6 +42,7 @@ public class TaskContract {
         public static final String COLUMN_VOICE         = "voice";
         public static final String COLUMN_DATE          = "date";
         public static final String COLUMN_ALARM         = "alarm";
+        public static final String COLUMN_URI           = "uri";
 
     }
 

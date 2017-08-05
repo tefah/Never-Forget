@@ -3,6 +3,8 @@ package com.tefah.neverforget.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.tefah.neverforget.Task;
 import com.tefah.neverforget.data.TaskContract.TaskEntry;
 
 /**
@@ -15,7 +17,7 @@ public class TaskDbHelper  extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "tasksDb.db";
 
     // If you change the database schema, you must increment the database version
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
 
 
     // Constructor
@@ -37,7 +39,8 @@ public class TaskDbHelper  extends SQLiteOpenHelper {
                 TaskEntry.COLUMN_IMAGE    + " TEXT, " +
                 TaskEntry.COLUMN_VOICE +" TEXT, " +
                 TaskEntry.COLUMN_ALARM + " INTEGER NOT NULL, " +
-                TaskEntry.COLUMN_DATE + " INTEGER NOT NULL " +
+                TaskEntry.COLUMN_DATE + " INTEGER NOT NULL, " +
+                TaskEntry.COLUMN_URI + " TEXT " +
                 " );";
 
         db.execSQL(CREATE_TABLE);

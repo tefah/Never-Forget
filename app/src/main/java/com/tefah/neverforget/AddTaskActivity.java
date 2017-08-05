@@ -179,13 +179,10 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
             text = new SimpleDateFormat("dd MM yyyy",
                     Locale.getDefault()).format(new Date());
         }
-        if (updateTask)
-            Utilities.deleteImageFile(this, imagePath);
         if (mResultsBitmap!= null)
-            imagePath = Utilities.saveImage(this, mResultsBitmap);
-        task = new Task(Utilities.timeStamp(), false, text);
-        task.setAudioFilePath(audioPath);
-        task.setImageFilePath(imagePath);
+            task.setImageFilePath(Utilities.saveImage(this, mResultsBitmap));
+        task.setText(text);
+        task.setTimeStamp(Utilities.timeStamp());
         if (updateTask)
             updateTask();
         else addNewTask();
@@ -200,32 +197,23 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
         values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
 
-        Uri uri = getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, values);
-        task.setId(Integer.parseInt(uri.getPathSegments().get(1)));
+        task.setUri((getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, values)).toString());
 
-        Toast.makeText(this, uri.toString(), Toast.LENGTH_SHORT).show();
-
+        updateTask();
     }
-    public void updateTask(){
-        try {
-            Log.i("UPDATE TASK", "Entered");
+    public void updateTask() {
 
-            ContentValues values = new ContentValues();
-            values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
-            values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
-            values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
-            values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
-            values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
+        ContentValues values = new ContentValues();
+        values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
+        values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
+        values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
+        values.put(TaskContract.TaskEntry.COLUMN_URI, task.getUri());
 
-            Uri taskUri = Uri.withAppendedPath(TaskContract.TaskEntry.CONTENT_URI, task.getId() + "");
-            int tasksUpdated = getContentResolver().update(taskUri, values, null, null);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-//        Toast.makeText(this, tasksUpdated, Toast.LENGTH_SHORT).show();
+        Uri taskUri = Uri.parse(task.getUri());
+        int tasksUpdated = getContentResolver().update(taskUri, values, null, null);
     }
-
 
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {

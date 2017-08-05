@@ -46,7 +46,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         String text = cursor.getString(TaskContract.TEXT_INDEX);
         int id = cursor.getInt(TaskContract.ID_INDEX);
         String imagePath = cursor.getString(TaskContract.IMAGE_INDEX);
-        String audioPath = cursor.getString(TaskContract.VOICE_INDEX);
         Bitmap bitmap = Utilities.resamplePic(context, imagePath);
 
         holder.textNote.setText(text);
