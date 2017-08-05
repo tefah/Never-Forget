@@ -9,6 +9,7 @@
         android:name="android.hardware.camera"
         android:required="true" />
 
+    <!--https://stackoverflow.com/questions/32244851/androidjava-lang-outofmemoryerror-failed-to-allocate-a-23970828-byte-allocatio-->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

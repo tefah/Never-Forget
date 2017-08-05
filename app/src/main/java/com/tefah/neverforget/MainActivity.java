@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+        getLoaderManager().initLoader(TASK_LOADER_ID, null, this);
     }
 
 @OnClick(R.id.photoNote)
@@ -131,7 +132,6 @@ public void photoNote(){
     @Override
     protected void onResume() {
         super.onResume();
-        getLoaderManager().initLoader(TASK_LOADER_ID, null, this);
     }
 
     @OnClick(R.id.writeNote)

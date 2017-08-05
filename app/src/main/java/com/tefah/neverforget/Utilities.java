@@ -144,11 +144,11 @@ public class Utilities {
      * Deletes image file for a given path.
      *
      * @param context   The application context.
-     * @param imagePath The path of the photo to be deleted.
+     * @param path The path of the photo to be deleted.
      */
-    static boolean deleteImageFile(Context context, String imagePath) {
+    static boolean deleteFile(Context context, String path) {
         // Get the file
-        File imageFile = new File(imagePath);
+        File imageFile = new File(path);
 
         // Delete the image
         boolean deleted = imageFile.delete();
@@ -212,12 +212,7 @@ public class Utilities {
             // Add the image to the system gallery
             galleryAddPic(context, savedImagePath);
 
-            // Show a Toast with the save location
-            String savedMessage = context.getString(R.string.saved_message, savedImagePath);
-            Toast.makeText(context, savedMessage, Toast.LENGTH_SHORT).show();
-
         }
-
         return savedImagePath;
     }
 
