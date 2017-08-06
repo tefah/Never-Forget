@@ -145,6 +145,8 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
             // Continue only if the File was successfully created
             if (photoFile != null) {
 
+                if (mTempPhotoPath != null)
+                    Utilities.deleteFile(this, mTempPhotoPath);
                 // Get the path of the temporary file
                 mTempPhotoPath = photoFile.getAbsolutePath();
 
@@ -212,7 +214,8 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
                     Locale.getDefault()).format(new Date());
         }
         if (mResultsBitmap!= null) {
-            Utilities.deleteFile(this, task.getImageFilePath());
+            if (task.getImageFilePath()!= null)
+                Utilities.deleteFile(this, task.getImageFilePath());
             Utilities.deleteFile(this, mTempPhotoPath);
             task.setImageFilePath(Utilities.saveImage(this, mResultsBitmap));
         }
