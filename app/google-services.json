@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "358636142382",
+    "firebase_url": "https://never-forget-192ef.firebaseio.com",
+    "project_id": "never-forget-192ef",
+    "storage_bucket": "never-forget-192ef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358636142382:android:60eaff69885ff1b7",
+        "android_client_info": {
+          "package_name": "com.tefah.neverforget"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "358636142382-g1gfslmag3k0987gbsvtccm7d7rc9vsq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUH11i1ole2aTnPWnqIjyGfsTE9VWdAvs"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
