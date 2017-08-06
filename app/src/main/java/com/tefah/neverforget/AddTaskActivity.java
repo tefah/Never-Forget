@@ -6,15 +6,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -50,6 +53,7 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     private Bitmap mResultsBitmap;
     private String mTempPhotoPath;
     public Task task;
+    MediaRecorder recorder;
 
     @BindView(R.id.done)
     Button done;
@@ -57,6 +61,9 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     EditText textNote;
     @BindView(R.id.imageNote)
     ImageView imageNote;
+    @BindView(R.id.voiceNote)
+    FloatingActionButton voiceNote;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,11 +81,27 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         }
         if (intent.hasExtra(getString(R.string.task))) {
             task = Parcels.unwrap(intent.getParcelableExtra(getString(R.string.task)));
-            audioPath = task.getAudioFilePath();
-            imagePath = task.getImageFilePath();
             imageNote.setImageBitmap(Utilities.resamplePic(this, task.getImageFilePath()));
             textNote.setText(task.getText());
         }
+
+        voiceNote.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                int action = motionEvent.getAction();
+                switch (action){
+                    case MotionEvent.ACTION_DOWN:
+                        recorder = new MediaRecorder();
+                        audioPath = Utilities.startRecording(recorder, AddTaskActivity.this);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        Utilities.stopRecording(recorder);
+                        break;
+                    default:
+                }
+                return true;
+            }
+        });
     }
 
     /**
@@ -98,25 +121,6 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         } else {
             // Launch the camera if the permission exists
             launchCamera();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        // Called when you request permission to read and write to external storage
-        switch (requestCode) {
-            case REQUEST_STORAGE_PERMISSION: {
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // If you get permission, launch the camera
-                    launchCamera();
-                } else {
-                    // If you do not get permission, show a Toast
-                    Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
-                }
-                break;
-            }
         }
     }
 
@@ -141,6 +145,8 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
             // Continue only if the File was successfully created
             if (photoFile != null) {
 
+                if (mTempPhotoPath != null)
+                    Utilities.deleteFile(this, mTempPhotoPath);
                 // Get the path of the temporary file
                 mTempPhotoPath = photoFile.getAbsolutePath();
 
@@ -157,6 +163,7 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
             }
         }
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // If the image capture activity was called and was successful
@@ -164,11 +171,38 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
             // Resample the saved image to fit the ImageView
             mResultsBitmap = Utilities.resamplePic(this, mTempPhotoPath);
             imageNote.setImageBitmap(mResultsBitmap);
-
         } else {
 
             // Otherwise, delete the temporary image file
-            Utilities.deleteImageFile(this, mTempPhotoPath);
+            Utilities.deleteFile(this, mTempPhotoPath);
+        }
+    }
+
+    @OnClick(R.id.voiceNotePlayer)
+    public void play(){
+        if (task.getAudioFilePath() != null)
+            Utilities.startPlaying(task.getAudioFilePath(), this);
+        else
+            Toast.makeText(this, getString(R.string.no_audio_recorded), Toast.LENGTH_SHORT).show();
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        // Called when you request permission to read and write to external storage
+        switch (requestCode) {
+            case REQUEST_STORAGE_PERMISSION: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // If you get permission, launch the camera
+                    launchCamera();
+                } else {
+                    // If you do not get permission, show a Toast
+                    Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
         }
     }
 
@@ -179,8 +213,16 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
             text = new SimpleDateFormat("dd MM yyyy",
                     Locale.getDefault()).format(new Date());
         }
-        if (mResultsBitmap!= null)
+        if (mResultsBitmap!= null) {
+            if (task.getImageFilePath()!= null)
+                Utilities.deleteFile(this, task.getImageFilePath());
+            Utilities.deleteFile(this, mTempPhotoPath);
             task.setImageFilePath(Utilities.saveImage(this, mResultsBitmap));
+        }
+        if (audioPath !=  null) {
+            Utilities.deleteFile(this, task.getAudioFilePath());
+            task.setAudioFilePath(audioPath);
+        }
         task.setText(text);
         task.setTimeStamp(Utilities.timeStamp());
         if (updateTask)
@@ -189,6 +231,10 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
 
         finish();
     }
+
+    /**
+     * adding new task to the db
+     */
     public void addNewTask(){
         ContentValues values = new ContentValues();
         values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
@@ -201,6 +247,10 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
 
         updateTask();
     }
+
+    /**
+     * updating an existing task in the db
+     */
     public void updateTask() {
 
         ContentValues values = new ContentValues();
