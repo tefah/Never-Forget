@@ -24,6 +24,8 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.tefah.neverforget.data.TaskContract;
 
 import org.parceler.Parcels;
@@ -44,6 +46,7 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_STORAGE_PERMISSION = 1;
     public static final String FILE_PROVIDER_AUTHORITY = "com.tefah.fileprovider";
+    public static final String name = "Add tAsk Activity";
 
 
     private boolean updateTask = false;
@@ -54,6 +57,7 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     private String mTempPhotoPath;
     public Task task;
     MediaRecorder recorder;
+    private static Tracker mTracker;
 
     @BindView(R.id.done)
     Button done;
@@ -102,6 +106,17 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
                 return true;
             }
         });
+
+        // Obtain the shared Tracker instance.
+        Analytics application = (Analytics) getApplication();
+        mTracker = application.getDefaultTracker();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mTracker.setScreenName( name);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     /**

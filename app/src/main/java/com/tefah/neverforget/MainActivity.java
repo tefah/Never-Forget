@@ -27,6 +27,8 @@ import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.tefah.neverforget.data.TaskContract;
 
 import org.parceler.Parcels;
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String TAG = MainActivity.class.getSimpleName();
     private static  int TASK_LOADER_ID = 0;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+    private static final String name = "Main Activity";
 
     private boolean toUpdateTask = false;
     private static String audioPath = null;
@@ -51,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private MediaRecorder recorder = null;
     private List<Task> tasks;
     public Task task;
+    private static Tracker mTracker;
 
     @BindView(R.id.tasksList)
     RecyclerView tasksList;
@@ -80,8 +84,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-//        MobileAds.initialize(getApplicationContext(),
-//                "ca-app-pub-3940256099942544~3347511713");
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
@@ -131,6 +133,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
+        // Obtain the shared Tracker instance.
+        Analytics application = (Analytics) getApplication();
+        mTracker = application.getDefaultTracker();
+
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
         getLoaderManager().initLoader(TASK_LOADER_ID, null, this);
     }
@@ -143,6 +149,10 @@ public void photoNote(){
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i(TAG, "Setting screen name: " + name);
+        mTracker.setScreenName( name);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
     }
 
     @OnClick(R.id.writeNote)
@@ -153,6 +163,8 @@ public void photoNote(){
 
 
     public void addTask(boolean hasVoice, boolean takePicture){
+
+        mTracker.send(new HitBuilders.EventBuilder().setLabel("add task").build());
         Intent intent = new Intent(this,AddTaskActivity.class);
         if (takePicture)
             intent.setAction(getString(R.string.take_picture));
