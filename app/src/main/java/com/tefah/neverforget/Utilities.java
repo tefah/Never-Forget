@@ -1,5 +1,6 @@
 package com.tefah.neverforget;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -7,17 +8,31 @@ import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
+
+import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.tefah.neverforget.data.TaskContract;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -227,5 +242,90 @@ public class Utilities {
             storageDir.mkdirs();
         }
         return storageDir;
+    }
+
+    public static void grapEvents(final Context context){
+        GraphRequest request = GraphRequest.newMeRequest(
+                AccessToken.getCurrentAccessToken(),
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(
+                            JSONObject object,
+                            GraphResponse response) {
+                        try {
+                            updateDB(context, fetchFacebookEvents(object));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "events");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    private static void updateDB(Context context, List<Task> tasks) {
+
+        for (int i =0; i<tasks.size(); i++){
+            addNewTask(context, tasks.get(i));
+        }
+    }
+
+    private static List<Task> fetchFacebookEvents( JSONObject root) throws JSONException {
+        if (root.get("events") == null)
+            return null;
+        List<Task> tasks = new ArrayList<>();
+        Log.i("ROOT", root.toString());
+        JSONObject events = root.getJSONObject("events");
+        JSONArray data = events.getJSONArray("data");
+        for (int i =0; i<data.length(); i++){
+            JSONObject event = (JSONObject) data.get(i);
+            String name = event.getString("name");
+            String time = event.getString("start_time");
+            String timeStamp = new SimpleDateFormat("yyyy-MM-dd",
+                    Locale.getDefault()).format(new Date());
+            Log.i("TIME STAMP", time + "  time stamp:  "+ timeStamp);
+            time = time.substring(0, 10);
+            Log.i("TIME STAMP", time + "  time stamp:  "+ timeStamp);
+            if (time.equals(timeStamp)){
+                Task task = new Task(timeStamp(),false, name);
+                tasks.add(task);
+            }
+        }
+
+        return tasks;
+    }
+    /**
+     * adding new task to the db
+     */
+    public static void addNewTask(Context context, Task task){
+        ContentValues values = new ContentValues();
+        values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
+        values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
+        values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
+
+        task.setUri((context.getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, values)).toString());
+
+        updateTask(context, task);
+    }
+
+    /**
+     * updating an existing task in the db
+     */
+    public static void updateTask(Context context, Task task) {
+
+        ContentValues values = new ContentValues();
+        values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
+        values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
+        values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
+        values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
+        values.put(TaskContract.TaskEntry.COLUMN_URI, task.getUri());
+
+        Uri taskUri = Uri.parse(task.getUri());
+        int tasksUpdated = context.getContentResolver().update(taskUri, values, null, null);
     }
 }

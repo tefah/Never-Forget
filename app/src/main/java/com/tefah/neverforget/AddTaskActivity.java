@@ -250,44 +250,13 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         task.setText(text);
         task.setTimeStamp(Utilities.timeStamp());
         if (updateTask)
-            updateTask();
-        else addNewTask();
+            Utilities.updateTask(this, task);
+        else Utilities.addNewTask(this, task);
 
         finish();
     }
 
-    /**
-     * adding new task to the db
-     */
-    public void addNewTask(){
-        ContentValues values = new ContentValues();
-        values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
-        values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
-        values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
-        values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
-        values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
 
-        task.setUri((getContentResolver().insert(TaskContract.TaskEntry.CONTENT_URI, values)).toString());
-
-        updateTask();
-    }
-
-    /**
-     * updating an existing task in the db
-     */
-    public void updateTask() {
-
-        ContentValues values = new ContentValues();
-        values.put(TaskContract.TaskEntry.COLUMN_TEXT, task.getText());
-        values.put(TaskContract.TaskEntry.COLUMN_VOICE, task.getAudioFilePath());
-        values.put(TaskContract.TaskEntry.COLUMN_IMAGE, task.getImageFilePath());
-        values.put(TaskContract.TaskEntry.COLUMN_DATE, task.getTimeStamp());
-        values.put(TaskContract.TaskEntry.COLUMN_ALARM, 0);
-        values.put(TaskContract.TaskEntry.COLUMN_URI, task.getUri());
-
-        Uri taskUri = Uri.parse(task.getUri());
-        int tasksUpdated = getContentResolver().update(taskUri, values, null, null);
-    }
 
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {

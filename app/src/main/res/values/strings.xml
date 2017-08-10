@@ -18,4 +18,10 @@
     <string name="done">Done</string>
     <string name="write_note_edit_text">Write your note here</string>
     <string name="delete">Delete</string>
+
+    <!--facebook api id-->
+    <string name="facebook_app_id">260878671093997</string>
+    <string name="fb_login_protocol_scheme">fb260878671093997</string>
+    <string name="login_error">Error while login</string>
+    <string name="login_canceled">Login Canceled</string>
 </resources>

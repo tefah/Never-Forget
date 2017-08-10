@@ -2,7 +2,6 @@ package com.tefah.neverforget;
 
 import android.Manifest;
 import android.app.LoaderManager;
-import android.content.AsyncTaskLoader;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -14,15 +13,12 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -31,14 +27,20 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.Profile;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.tefah.neverforget.data.TaskContract;
-
+import com.tefah.neverforget.services.ServiceUtils;
 import org.parceler.Parcels;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private List<Task> tasks;
     public Task task;
     private static Tracker mTracker;
+    public CallbackManager callbackManager;
+    public static AccessToken accessToken;
 
     @BindView(R.id.tasksList)
     RecyclerView tasksList;
@@ -71,6 +75,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     FloatingActionButton voiceNote;
     @BindView(R.id.app_name)
     TextView appNameTV;
+    @BindView(R.id.login_button)
+    LoginButton loginButton;
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
@@ -100,11 +106,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 .build();
         mAdView.loadAd(adRequest);
 
+        //custom font for title
         Typeface indie = Typeface.createFromAsset(getAssets(), "IndieFlower.ttf");
         appNameTV.setTypeface(indie);
 
-
-// http://alvinalexander.com/android/how-to-determine-android-screen-size-dimensions-orientation
+        // http://alvinalexander.com/android/how-to-determine-android-screen-size-dimensions-orientation
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         int densityDpi = metrics.densityDpi;
@@ -163,6 +169,42 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
         getLoaderManager().initLoader(TASK_LOADER_ID, null, this);
+
+        //facebook login
+        accessToken = AccessToken.getCurrentAccessToken();
+        if (accessToken != null){
+            Profile profile = Profile.getCurrentProfile();
+            loginButton.setEnabled(false);
+        }
+        callbackManager = CallbackManager.Factory.create();
+        // Callback registration
+        loginButton.setReadPermissions("user_events");
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                accessToken = AccessToken.getCurrentAccessToken();
+                loginButton.setEnabled(false);
+                Utilities.grapEvents(MainActivity.this);
+                ServiceUtils.scheduleChargingReminder(MainActivity.this);
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+                Log.i(TAG, getString(R.string.login_canceled));
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                // App code
+                Log.i(TAG, getString(R.string.login_error) + exception);
+            }
+        });
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
 @OnClick(R.id.photoNote)
@@ -186,8 +228,6 @@ public void photoNote(){
     public void writeNote(){
         addTask(false, false);
     }
-
-
 
     public void addTask(boolean hasVoice, boolean takePicture){
 
