@@ -50,10 +50,10 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
         holder.textNote.setText(text);
         holder.itemView.setTag(id);
-        if (bitmap == null)
-            holder.imageNote.setImageResource(R.mipmap.note);
-        else
+        if (bitmap != null)
             holder.imageNote.setImageBitmap(bitmap);
+        else
+            holder.imageNote.setVisibility(View.GONE);
 
     }
 
@@ -90,7 +90,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         ImageButton play;
         public TaskViewHolder(View itemView) {
             super(itemView);
-            itemView.setOnClickListener(this);
+            itemView.findViewById(R.id.cardViewContainer).setOnClickListener(this);
             textNote = (TextView) itemView.findViewById(R.id.textNote);
             imageNote = (ImageView) itemView.findViewById(R.id.imageNote);
             play = (ImageButton) itemView.findViewById(R.id.playVoiceNote);

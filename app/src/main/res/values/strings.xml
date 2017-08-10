@@ -12,4 +12,10 @@
     <string name="task">task</string>
     <string name="no_audio_recorded">No Audio recorded for this task</string>
     <string name="update_task">update task</string>
+    <string name="write_note_button">Write Note Button</string>
+    <string name="make_photo_note_button">mak a photo note button</string>
+    <string name="make_voice_note_button">make a voice note button</string>
+    <string name="done">Done</string>
+    <string name="write_note_edit_text">Write your note here</string>
+    <string name="delete">Delete</string>
 </resources>

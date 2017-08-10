@@ -147,6 +147,8 @@ public class Utilities {
      * @param path The path of the photo to be deleted.
      */
     static boolean deleteFile(Context context, String path) {
+        if (path == null)
+            return false;
         // Get the file
         File imageFile = new File(path);
 

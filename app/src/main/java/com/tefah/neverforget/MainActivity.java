@@ -7,26 +7,32 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.tefah.neverforget.data.TaskContract;
@@ -47,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static  int TASK_LOADER_ID = 0;
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
     private static final String name = "Main Activity";
+    public static final int TABLET_DPI = 600;
 
     private boolean toUpdateTask = false;
     private static String audioPath = null;
@@ -62,6 +69,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     FloatingActionButton writeNote;
     @BindView(R.id.voiceNote)
     FloatingActionButton voiceNote;
+    @BindView(R.id.app_name)
+    TextView appNameTV;
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
@@ -84,14 +93,29 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        // admob requesting ads
         AdView mAdView = (AdView) findViewById(R.id.adView);
         AdRequest adRequest = new AdRequest.Builder()
                 .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
                 .build();
         mAdView.loadAd(adRequest);
 
+        Typeface indie = Typeface.createFromAsset(getAssets(), "IndieFlower.ttf");
+        appNameTV.setTypeface(indie);
+
+
+// http://alvinalexander.com/android/how-to-determine-android-screen-size-dimensions-orientation
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        int densityDpi = metrics.densityDpi;
+
+        GridLayoutManager layoutManager;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ||
+                densityDpi >= TABLET_DPI){
+            layoutManager = new GridLayoutManager(this,3);
+        } else
+            layoutManager = new GridLayoutManager(this, 1);
         taskAdapter = new TaskAdapter(this, this);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
         tasksList.setLayoutManager(layoutManager);
         tasksList.setAdapter(taskAdapter);
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -150,8 +174,11 @@ public void photoNote(){
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "Setting screen name: " + name);
+
+        // google analytics sending screen name
         mTracker.setScreenName( name);
         mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+        toUpdateTask=false;
 
     }
 
@@ -186,7 +213,7 @@ public void photoNote(){
         taskAdapter.swapCursor(cursor);
         tasks =  new ArrayList<>();
         for (int i =0; i< cursor.getCount(); i++){
-            if (cursor.moveToNext()){
+            if (cursor.moveToPosition(i)){
                 String text         = cursor.getString(TaskContract.TEXT_INDEX);
                 String imagePath    = cursor.getString(TaskContract.IMAGE_INDEX);
                 String voicePath    = cursor.getString(TaskContract.VOICE_INDEX);

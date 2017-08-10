@@ -139,6 +139,13 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         }
     }
 
+    @OnClick(R.id.delete)
+    public void delete(){
+        if (task.getUri() != null)
+            getContentResolver().delete(Uri.parse(task.getUri()), null, null);
+        finish();
+    }
+
     /**
      * Creates a temporary image file and captures a picture to store in it.
      */
@@ -195,7 +202,9 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
 
     @OnClick(R.id.voiceNotePlayer)
     public void play(){
-        if (task.getAudioFilePath() != null)
+        if (audioPath != null)
+            Utilities.startPlaying(audioPath, this);
+        else if (task.getAudioFilePath() != null)
             Utilities.startPlaying(task.getAudioFilePath(), this);
         else
             Toast.makeText(this, getString(R.string.no_audio_recorded), Toast.LENGTH_SHORT).show();
