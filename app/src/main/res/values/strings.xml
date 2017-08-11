@@ -30,4 +30,5 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="no_tasks">No tasks to show</string>
+    <string name="image_note">Image taken</string>
 </resources>

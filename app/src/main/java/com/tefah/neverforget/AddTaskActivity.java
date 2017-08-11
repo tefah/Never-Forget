@@ -1,7 +1,6 @@
 package com.tefah.neverforget;
 
 import android.Manifest;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -16,7 +15,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -26,7 +24,6 @@ import android.widget.Toast;
 
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
-import com.tefah.neverforget.data.TaskContract;
 import com.tefah.neverforget.widget.TaskWidgetService;
 
 import org.parceler.Parcels;
@@ -49,11 +46,8 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     public static final String FILE_PROVIDER_AUTHORITY = "com.tefah.fileprovider";
     public static final String name = "Add tAsk Activity";
 
-
     private boolean updateTask = false;
     private String audioPath;
-    private String imagePath;
-    private long date;
     private Bitmap mResultsBitmap;
     private String mTempPhotoPath;
     public Task task;
@@ -87,7 +81,8 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         }
         if (intent.hasExtra(getString(R.string.task))) {
             task = Parcels.unwrap(intent.getParcelableExtra(getString(R.string.task)));
-            imageNote.setImageBitmap(Utilities.resamplePic(this, task.getImageFilePath()));
+            if (task.getImageFilePath() != null)
+                imageNote.setImageBitmap(Utilities.resamplePic(this, task.getImageFilePath()));
             textNote.setText(task.getText());
         }
 
@@ -218,7 +213,6 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
             Toast.makeText(this, getString(R.string.no_audio_recorded), Toast.LENGTH_SHORT).show();
     }
 
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -264,16 +258,14 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
         finish();
     }
 
-
-
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
         Utilities.stopPlaying(mediaPlayer);
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
         if (player != null){
             onSeekComplete(player);
         }

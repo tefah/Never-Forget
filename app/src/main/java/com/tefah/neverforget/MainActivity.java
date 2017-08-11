@@ -1,6 +1,7 @@
 package com.tefah.neverforget;
 
 import android.Manifest;
+import android.app.ActivityOptions;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -20,6 +22,8 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.transition.Explode;
+import android.transition.TransitionInflater;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -80,6 +84,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     TextView appNameTV;
     @BindView(R.id.login_button)
     LoginButton loginButton;
+    @BindView(R.id.empty_view)
+    View emptyView;
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
@@ -204,6 +210,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Log.i(TAG, getString(R.string.login_error) + exception);
             }
         });
+
+        Explode explode = null;
+            explode = (Explode) TransitionInflater.from(this).inflateTransition(R.transition.main_activity_exit);
+            getWindow().setExitTransition(explode);
+
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -235,6 +246,7 @@ public void photoNote(){
 
     public void addTask(boolean hasVoice, boolean takePicture){
 
+        Bundle bundle = ActivityOptions.makeSceneTransitionAnimation(this).toBundle();
         mTracker.send(new HitBuilders.EventBuilder().setLabel("add task").build());
         Intent intent = new Intent(this,AddTaskActivity.class);
         if (takePicture)
@@ -243,7 +255,7 @@ public void photoNote(){
             intent.putExtra(getString(R.string.task), Parcels.wrap(task));
         if (toUpdateTask)
             intent.setAction(getString(R.string.update_task));
-        startActivity(intent);
+        startActivity(intent, bundle);
     }
 
     @Override
@@ -267,6 +279,9 @@ public void photoNote(){
                 tasks.add(new Task(uri, date, alarm, text, voicePath, imagePath));
             }
         }
+        if (tasks.size() == 0)
+            emptyView.setVisibility(View.VISIBLE);
+        else emptyView.setVisibility(View.GONE);
     }
 
     @Override
@@ -292,7 +307,6 @@ public void photoNote(){
             toUpdateTask = true;
             addTask(true, false);
         }
-
     }
 
     @Override
