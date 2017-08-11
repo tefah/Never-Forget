@@ -8,20 +8,26 @@
 
     <!--intent action to task activity-->
     <string name="take_picture" translatable="false">take picture</string>
-    intent putExtra key to task
-    <string name="task">task</string>
+    <!--intent putExtra key to task-->
+    <string name="task" translatable="false">task</string>
+    <string name="update_task" translatable="false">update task</string>
+
     <string name="no_audio_recorded">No Audio recorded for this task</string>
-    <string name="update_task">update task</string>
     <string name="write_note_button">Write Note Button</string>
-    <string name="make_photo_note_button">mak a photo note button</string>
+    <string name="make_photo_note_button">make a photo note button</string>
     <string name="make_voice_note_button">make a voice note button</string>
     <string name="done">Done</string>
     <string name="write_note_edit_text">Write your note here</string>
     <string name="delete">Delete</string>
 
     <!--facebook api id-->
-    <string name="facebook_app_id">260878671093997</string>
-    <string name="fb_login_protocol_scheme">fb260878671093997</string>
+    <string name="facebook_app_id" translatable="false">260878671093997</string>
+    <string name="fb_login_protocol_scheme" translatable="false">fb260878671093997</string>
     <string name="login_error">Error while login</string>
     <string name="login_canceled">Login Canceled</string>
+
+    <!--widget strings-->
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="no_tasks">No tasks to show</string>
 </resources>

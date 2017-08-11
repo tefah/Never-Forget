@@ -19,6 +19,7 @@ import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.tefah.neverforget.data.TaskContract;
+import com.tefah.neverforget.widget.TaskWidgetService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,9 +42,8 @@ import java.util.Locale;
 
 public class Utilities {
 
-    public static void startPlaying( String audioFileName, MediaPlayer.OnSeekCompleteListener listener) {
+    public static void startPlaying(MediaPlayer player, String audioFileName, MediaPlayer.OnSeekCompleteListener listener) {
         try {
-            MediaPlayer player = new MediaPlayer();
             player.setDataSource(audioFileName);
             player.prepare();
             player.start();
@@ -327,5 +327,6 @@ public class Utilities {
 
         Uri taskUri = Uri.parse(task.getUri());
         int tasksUpdated = context.getContentResolver().update(taskUri, values, null, null);
+        TaskWidgetService.startActionUpdateWidget(context);
     }
 }

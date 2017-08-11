@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.tefah.neverforget.data.TaskContract;
+import com.tefah.neverforget.widget.TaskWidgetService;
 
 import org.parceler.Parcels;
 
@@ -57,6 +58,7 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     private String mTempPhotoPath;
     public Task task;
     MediaRecorder recorder;
+    MediaPlayer player;
     private static Tracker mTracker;
 
     @BindView(R.id.done)
@@ -141,8 +143,10 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
 
     @OnClick(R.id.delete)
     public void delete(){
-        if (task.getUri() != null)
+        if (task.getUri() != null) {
             getContentResolver().delete(Uri.parse(task.getUri()), null, null);
+            TaskWidgetService.startActionUpdateWidget(this);
+        }
         finish();
     }
 
@@ -202,10 +206,14 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
 
     @OnClick(R.id.voiceNotePlayer)
     public void play(){
+        if (player != null){
+            onSeekComplete(player);
+        }
+        player = new MediaPlayer();
         if (audioPath != null)
-            Utilities.startPlaying(audioPath, this);
+            Utilities.startPlaying(player, audioPath, this);
         else if (task.getAudioFilePath() != null)
-            Utilities.startPlaying(task.getAudioFilePath(), this);
+            Utilities.startPlaying(player, task.getAudioFilePath(), this);
         else
             Toast.makeText(this, getString(R.string.no_audio_recorded), Toast.LENGTH_SHORT).show();
     }
@@ -261,5 +269,13 @@ public class AddTaskActivity extends AppCompatActivity implements MediaPlayer.On
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
         Utilities.stopPlaying(mediaPlayer);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (player != null){
+            onSeekComplete(player);
+        }
     }
 }

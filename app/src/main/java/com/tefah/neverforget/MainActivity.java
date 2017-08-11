@@ -40,6 +40,8 @@ import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.tefah.neverforget.data.TaskContract;
 import com.tefah.neverforget.services.ServiceUtils;
+import com.tefah.neverforget.widget.TaskWidgetService;
+
 import org.parceler.Parcels;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static String audioPath = null;
     private TaskAdapter taskAdapter;
     private MediaRecorder recorder = null;
+    private MediaPlayer player;
     private List<Task> tasks;
     public Task task;
     private static Tracker mTracker;
@@ -138,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Uri uri = TaskContract.TaskEntry.CONTENT_URI;
                 uri = uri.buildUpon().appendPath(stringId).build();
                 getContentResolver().delete(uri, null, null);
+                TaskWidgetService.startActionUpdateWidget(MainActivity.this);
                 getLoaderManager().restartLoader(TASK_LOADER_ID, null, MainActivity.this);
             }
         }).attachToRecyclerView(tasksList);
@@ -278,7 +282,11 @@ public void photoNote(){
                 Toast.makeText(this, getString(R.string.no_audio_recorded), Toast.LENGTH_SHORT).show();
                 return;
             }
-            Utilities.startPlaying(audioPath, this);
+            if (player != null){
+                onSeekComplete(player);
+            }
+            player = new MediaPlayer();
+            Utilities.startPlaying(player, audioPath, this);
         }else {
             task = tasks.get(position);
             toUpdateTask = true;
@@ -290,5 +298,13 @@ public void photoNote(){
     @Override
     public void onSeekComplete(MediaPlayer mediaPlayer) {
         Utilities.stopPlaying(mediaPlayer);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (player != null){
+            onSeekComplete(player);
+        }
     }
 }
